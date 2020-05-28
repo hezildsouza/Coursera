@@ -1,124 +1,73 @@
-<?php
-	
+<?php // Do not put any HTML above this line
 session_start();
-
-$logged_in = false;
-$profiles = [];
-
-if (isset($_SESSION['name']) ) 
-{
-
-	$logged_in = true;
-	$status = false;
-
-	if ( isset($_SESSION['status']) ) 
-	{
-		$status = htmlentities($_SESSION['status']);
-		$status_color = htmlentities($_SESSION['color']);
-
-		unset($_SESSION['status']);
-		unset($_SESSION['color']);
-	}
-
-	try 
-	{
-	    $pdo = new PDO("mysql:host=localhost;dbname=coursera_javascript_jquery_and_json", "root", "root");
-        // set the PDO error mode to exception
-        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-
-	    $all_profiles = $pdo->query("SELECT * FROM profile");
-
-		while ( $row = $all_profiles->fetch(PDO::FETCH_OBJ) ) 
-		{
-		    $profiles[] = $row;
-		}
-	}
-	catch(PDOException $e)
-	{
-	    echo "Connection failed: " . $e->getMessage();
-	    die();
-	}
-}
-
+require_once "pdo.php";
+$stmt = $pdo->query("SELECT profile_id, first_name,last_name , headline from users join Profile on users.user_id = Profile.user_id");
+$rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
+
+
 <!DOCTYPE html>
 <html>
-	<head>
-		<title>Ivan Neradovic's Resume Registry</title>
-		<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
-	</head>
-	<body>
-		<div class="container">
-			<h1>Ivan Neradovic's Resume Registry</h1>
+<head>
+    <title>Chuck Severance's Resume Registry 0118a063</title>
+    <?php require_once "bootstrap.php"; ?>
+</head>
+<body>
+<div class="container">
+    <h2>Chuck Severance's Resume Registry</h2>
+    <?php
+    if (isset($_SESSION['name'])) {
+        echo '<p><a href="logout.php">Logout</a></p>';
+    }
+    ?>
+    <?php
+    if (isset($_SESSION['success'])) {
+        echo('<p style="color: green;">' . htmlentities($_SESSION['success']) . "</p>\n");
+        unset($_SESSION['success']);
+    }
+    ?>
 
-			<?php if (!$logged_in) : ?>
-				<p>
-					<a href="login.php">Please log in</a>
-				</p>
-				<p>
-					Attempt
-					<a href="add.php">add data</a> 
-					without logging in.
-				</p>
-			<?php else : ?>
+    <ul>
 
-				<?php
-	                if ( $status !== false ) 
-	                {
-	                    // Look closely at the use of single and double quotes
-	                    echo(
-	                        '<p style="color: ' .$status_color. ';" class="col-sm-10">'.
-	                            $status.
-	                        "</p>\n"
-	                    );
-	                }
-	            ?>
-
-				<?php if (empty($profiles)) : ?>
-					<p>No rows found</p>
-				<?php else : ?>
-					<div class="row">
-						<div class="col-md-8">
-							<table class="table">
-								<thead>
-									<tr>
-										<th>Name</th>
-										<th>Headline</th>
-										<th>Action</th>
-									</tr>
-								</thead>
-								<tbody>
-									<?php foreach($profiles as $profile) : ?>
-				                        <tr>
-				                        	<td>
-				                        		<a href="view.php?profile_id=<?php echo $profile->profile_id; ?>">
-				                        			<?php echo $profile->first_name . ' ' . $profile->last_name; ?>
-				                        		</a>
-				                        	</td>
-											<td><?php echo $profile->headline ?></td>
-											<td>
-												<a href="edit.php?profile_id=<?php echo $profile->profile_id; ?>">
-													Edit
-												</a> / 
-												<a href="delete.php?profile_id=<?php echo $profile->profile_id; ?>">
-													Delete
-												</a>
-											</td>
-				                        </tr>
-				                    <?php endforeach; ?>
-								</tbody>
-							</table>
-						</div>
-					</div>
-				<?php endif; ?>
-				<p>
-					<a href="add.php">Add New Entry</a>
-				</p>
-				<p>
-					<a href="logout.php">Logout</a>
-				</p>
-			<?php endif; ?>	
-		</div>
-	</body>
+        <?php
+        if (!isset($_SESSION['name'])) {
+            echo "<p><a href='login.php'>Please log in</a></p>";
+        }
+        if (true) {
+            if (true) {
+                echo "<table border='1'>";
+                echo " <thead><tr>";
+                echo "<th>Name</th>";
+                echo " <th>Headline</th>";
+                if (isset($_SESSION['name'])) {
+                    echo("<th>Action</th>");
+                }
+                echo " </tr></thead>";
+                foreach ($rows as $row) {
+                    echo "<tr><td>";
+                    echo("<a href='view.php?profile_id=" . $row['profile_id'] . "'>" . $row['first_name'] . $row['last_name']  . "</a>");
+                    echo("</td><td>");
+                    echo($row['headline']);
+                    echo("</td>");
+                    if (isset($_SESSION['name'])) {
+                        echo("<td>");
+                        echo('<a href="edit.php?profile_id=' . $row['profile_id'] . '">Edit</a> / <a href="delete.php?profile_id=' . $row['profile_id'] . '">Delete</a>');
+                    }
+                    echo("</td></tr>\n");
+                }
+                echo "</table>";
+            } else {
+                echo 'No rows found';
+            }
+        }
+        echo '</li></ul>';
+        ?>
+        <p><a href="add.php">Add New Entry</a></p>
+        <p>
+            <b>Note:</b> Your implementation should retain data across multiple
+            logout/login sessions. This sample implementation clears all its
+            data periodically - which you should not do in your implementation.
+        </p>
+</div>
+</body>
 </html>
-© 2020 GitHub, Inc.
